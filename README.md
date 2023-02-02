@@ -21,7 +21,9 @@ Please note some parameters :
 - **Autostart** : It's a good idea to turn it on, as it enable automaticly start this script, and will not require you to start it manualy.
 - **API-key** : This is the API key that you can find on the intranet. It's mandatory. The following pictures will help you finding it :
 
-Go to the [intranet](https://intra.epitech.eu/)
+<details><summary>Get your API key</summary>
+
+Go to the [EPITECH intranet](https://intra.epitech.eu/)
 
 ![Go to the intranet](images/1.png)
 
@@ -34,3 +36,7 @@ Go get your token on the cookies section (Storage>Cookies on Firefox)
 ![Cookie section of the browser](images/3.png)
 
 Get the value of that cookie. It is your API token.
+
+</details>
+
+
