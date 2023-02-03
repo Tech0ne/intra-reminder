@@ -12,14 +12,11 @@ It can send you messages on discord using Webhooks, send you notifications on yo
 
 Instalation is made using the [install.sh](null) file.
 
-Simply clone this repo, and run `./install.sh`.
+Simply clone this repo, update the `config` file and run `./install.sh`.
 
-It will ask you everythink needed for configuration.
+Please note some of the configs you can / need to change on the `config` file :
 
-Please note some parameters :
-
-- **Autostart** : It's a good idea to turn it on, as it enable automaticly start this script, and will not require you to start it manualy.
-- **API-key** : This is the API key that you can find on the intranet. It's mandatory. The following pictures will help you finding it :
+- **API-key** : This is the API key that you can find on the intranet. If you don't have it, it will not work. The following pictures will help you finding it :
 
 <details><summary>Get your API key</summary>
 
@@ -38,5 +35,3 @@ Go get your token on the cookies section (Storage>Cookies on Firefox)
 Get the value of that cookie. It is your API token.
 
 </details>
-
-

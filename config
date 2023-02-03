@@ -1,0 +1,3 @@
+api_key = ""
+notify_command = "zenity --info --text \"{MESSAGE}\" --title=\"Intra reminder\" --width=200 --height=100"
+webhook_url = ""
