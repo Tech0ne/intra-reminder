@@ -16,3 +16,6 @@ chmod +x ~/.config/autostart/intra-reminder.desktop
 cp config ~/.local/share/intranet-reminder/config
 
 echo "Setup complete"
+echo "Starting..."
+
+~/.local/share/intranet-reminder/intra-reminder &

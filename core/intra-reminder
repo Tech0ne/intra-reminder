@@ -87,7 +87,7 @@ def check_unsub(api_key, command, webhook_url, distance):
     unsub = []
     for e in evts:
         unsub.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)")
-    for e in [unsub[i:i+4] for i in range(0, len(unsub), 4)]:
+    for e in [unsub[i:i+7] for i in range(0, len(unsub), 7)]:
         message = f"Warning ! You have unsubscribed activities for the {(date.today() + timedelta(days=distance)).strftime('%d/%m/%Y')} : \n\n" + '\n\n'.join(e)
         send_message(webhook_url, command, message)
 
@@ -107,7 +107,7 @@ def daily_check(api_key, webhook_url, command):
     activity = []
     for e in evts:
         activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)")
-    for e in [activity[i:i+4] for i in range(0, len(activity), 4)]:
+    for e in [activity[i:i+7] for i in range(0, len(activity), 7)]:
         message = f"Today ({date.today().strftime('%d/%m/%Y')}) you have these activities : \n\n" + '\n\n'.join(e)
         send_message(webhook_url, command, message)
 
@@ -146,11 +146,11 @@ def do_zip_update():
 
 do_zip_update()
 
-if not os.path.isfile("./config"):
-    report_crash("NO ./config FILE FOUND (IMPORTANT)")
+if not os.path.isfile(f"/home/{getuser()}/.local/share/intranet-reminder/config"):
+    report_crash("NO config FILE FOUND (IMPORTANT)")
     sys.exit(1)
 
-with open("./config", 'r') as f:
+with open(f"/home/{getuser()}/.local/share/intranet-reminder/config", 'r') as f:
     data = f.read()
 
 lines = []
@@ -176,7 +176,7 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    with open("./.last_check", 'r+') as f:
+    with open(f"/home/{getuser()}/.local/share/intranet-reminder/.last_check", 'r+') as f:
         data = f.read()
 except:
     data = ""
@@ -188,5 +188,5 @@ if (unsub_distance):
 if data != datetime.now().strftime("%Y-%m-%d"):
     daily_check(api_key, webhook_url, notify_command)
 
-with open("./.last_check", 'w+') as f:
+with open(f"/home/{getuser()}/.local/share/intranet-reminder/.last_check", 'w+') as f:
     f.write(datetime.now().strftime("%Y-%m-%d"))
