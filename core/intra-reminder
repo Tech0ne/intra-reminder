@@ -64,44 +64,52 @@ def get_events_list(cookie, _date: date, keep_registered = True, keep_unregister
 
 def send_message(webhook_url, command, message):
     if webhook_url:
-        s = Session()
-        data = {
-            "content": "||@everyone||\n"+message,
-            "username": "Intra-reminder"
-        }
-        s.post(webhook_url, json=data)
+        try:
+            s = Session()
+            data = {
+                "content": "||@everyone||\n"+message,
+                "username": "Intra-reminder"
+            }
+            s.post(webhook_url, json=data)
+        except Exception as e:
+            report_crash(f"Could not send to webhook : {e}")
     if command:
-        os.system(command.replace("{MESSAGE}", message))
+        try:
+            os.system(command.replace("{MESSAGE}", message.replace('&', "&amp;").replace('"', '\\"')))
+        except Exception as e:
+            report_crash(f"Error when executing desktop command : {e}")
 
 def today_plus_x(distance):
     return date.today() + timedelta(days=distance)
 
-def check_unsub(api_key, command, webhook_url, _format, distance):
+def check_unsub(api_key, command, webhook_url, distance):
     evts = get_events_list_in_x_days(api_key, distance, False, True)
     unsub = []
     for e in evts:
-        unsub.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')}")
-    message = _format.replace("{DATE}", (date.today() + timedelta(days=distance)).strftime("%d/%m/%Y")).replace("{ACTIVITIES}", '\n\n'+('\n\n'.join(unsub)))
-    send_message(webhook_url, command, message)
+        unsub.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)")
+    for e in [unsub[i:i+4] for i in range(0, len(unsub), 4)]:
+        message = f"Warning ! You have unsubscribed activities for the {(date.today() + timedelta(days=distance)).strftime('%d/%m/%Y')} : \n\n" + '\n\n'.join(e)
+        send_message(webhook_url, command, message)
 
-def reminder(api_key, webhook_url, command, _format: str, timer_list):
+def reminder(api_key, webhook_url, command, timer_list):
     evts = get_events_list_in_x_days(api_key, 0, True, False, True)
     for e in evts:
         for t in timer_list:
             timer = (datetime.strptime(e.get('start'), "%Y-%m-%d %H:%M:%S") - datetime.now()).total_seconds() - (t * 60)
             if timer < 0:
                 continue
-            message = _format.replace("{HOUR}", e.get('start')).replace("{TIME}", e.get('nb_hours')).replace("{ROOM}", e.get('room').get('code')).replace("{NAME}", e.get('acti_title')).replace("{DIST}", f"{t} min")
+            message = f"You will have the activity {e.get('acti_title')} in {t} min at {e.get('start')} in {e.get('room').get('code')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)"
             Timer(timer, send_message, args=(webhook_url, command, message)).start()
 
 
-def daily_check(api_key, webhook_url, command, _format):
+def daily_check(api_key, webhook_url, command):
     evts = get_events_list_in_x_days(api_key, 0, True, False)
     activity = []
     for e in evts:
-        activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')}")
-    message = _format.replace("{DATE}", date.today().strftime("%d/%m/%Y")).replace("{ACTIVITIES}", '\n\n'+('\n\n'.join(activity)))
-    send_message(webhook_url, command, message)
+        activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)")
+    for e in [activity[i:i+4] for i in range(0, len(activity), 4)]:
+        message = f"Today ({date.today().strftime('%d/%m/%Y')}) you have these activities : \n\n" + '\n\n'.join(e)
+        send_message(webhook_url, command, message)
 
 
 def get_events_list_in_x_days(cookie, nb_days, keep_registered=True, keep_unregistered=True, remove_before=False):
@@ -150,7 +158,7 @@ for e in data.split('\n'):
     if e and not e.startswith('#'):
         lines.append(e)
 
-api_key = notify_command = webhook_url = reminder_timer = daily_check_message = reminder_message = unsub_distance = unsub_message = None
+api_key = notify_command = webhook_url = reminder_timer = unsub_distance = None
 
 for e in lines:
     try:
@@ -160,7 +168,7 @@ for e in lines:
         sys.exit(1)
 
 try:
-    if api_key == None or notify_command == None or webhook_url == None or reminder_timer == None or daily_check_message == None or reminder_message == None or unsub_distance == None or unsub_message == None:
+    if api_key == None or notify_command == None or webhook_url == None or reminder_timer == None or unsub_distance == None:
         report_crash("Invalid config file (required values not found)")
         sys.exit(1)
 except Exception as e:
@@ -173,12 +181,12 @@ try:
 except:
     data = ""
 
-reminder(api_key, webhook_url, notify_command, reminder_message, reminder_timer)
+reminder(api_key, webhook_url, notify_command, reminder_timer)
 if (unsub_distance):
-    check_unsub(api_key)
+    check_unsub(api_key, notify_command, webhook_url, unsub_distance)
 
-if data != datetime.now().strftime("%Y-%m-%d") and daily_check_message != "":
-    daily_check(api_key, webhook_url, notify_command, daily_check_message)
+if data != datetime.now().strftime("%Y-%m-%d"):
+    daily_check(api_key, webhook_url, notify_command)
 
 with open("./.last_check", 'w+') as f:
     f.write(datetime.now().strftime("%Y-%m-%d"))

@@ -10,23 +10,5 @@ webhook_url = ""
 # Timer for reminder (coma separated, in minutes) (just [] for no reminders)
 reminder_timer = [10, 30, 60]
 
-# Message for the daily check (null for no daily check). The following will be changed :
-# {ACTIVITIES} : Daily activities, separated by \n
-# {DATE} : Today's date
-daily_check_message = "Here is your daily activity for {DATE} : {ACTIVITIES}"
-
-# Message for the reminder. The following will be changed :
-# {HOUR} : Formated time of the activity
-# {TIME} : Duration of the activity
-# {ROOM} : Room of the activity
-# {NAME} : Name of the activity
-# {DIST} : Time before the event (from now)
-reminder_message = "You will have the activity {NAME} (during {TIME}) at {HOUR} ({DIST} from now)."
-
 # Unsubscribed distance : check how many days before (0 for no check) ?
 unsub_distance = 2
-
-# Unsubscribed messgae. The following will be changed
-# {ACTIVITIES}: Unsubscribed activities, separated by \n
-# {DATE} : Date checked
-unsub_message = "/!\\ Warning /!\\ : You have unsubscribed activities ({DATE}) : {ACTIVITIES}"
