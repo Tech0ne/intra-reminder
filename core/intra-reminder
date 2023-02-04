@@ -18,7 +18,9 @@ def report_crash(data: str):
     with open(f"/home/{getuser()}/.local/share/intranet-reminder/intra-reminder-crash-report", 'a+') as f:
         f.write(now)
         f.write(data)
-        f.write("\nEND REPORT\n\n")
+        f.write('\n')
+        f.write(now)
+        f.write("END REPORT\n\n")
 
 def mkdir(path):
     p = "/"

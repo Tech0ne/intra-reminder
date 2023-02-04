@@ -2,7 +2,6 @@
 
 mkdir -p ~/.local/share/intranet-reminder/
 cp core/intra-reminder ~/.local/share/intranet-reminder/intra-reminder
-cp core/logo.png ~/.local/share/intranet-reminder/logo.png
 chmod +x ~/.local/share/intranet-reminder/intra-reminder
 
 echo "Setting up autostart"
