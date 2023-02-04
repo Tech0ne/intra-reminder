@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -rf ~/.local/share/intranet-reminder/
 mkdir -p ~/.local/share/intranet-reminder/
 rm -f ~/.local/share/intranet-reminder/intra-reminder-crash-report
 rm -f ~/.local/share/intranet-reminder/.last_check
