@@ -1,6 +1,8 @@
 #!/bin/bash
 
 mkdir -p ~/.local/share/intranet-reminder/
+rm -f ~/.local/share/intranet-reminder/intra-reminder-crash-report
+rm -f ~/.local/share/intranet-reminder/.last_check
 cp core/intra-reminder ~/.local/share/intranet-reminder/intra-reminder
 chmod +x ~/.local/share/intranet-reminder/intra-reminder
 

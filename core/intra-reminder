@@ -4,6 +4,7 @@ from requests import Session
 from getpass import getuser
 from subprocess import Popen as popen
 from datetime import date, timedelta, datetime
+from threading import Timer
 
 import json
 import sys
@@ -61,18 +62,7 @@ def get_events_list(cookie, _date: date, keep_registered = True, keep_unregister
     liste = sorted(liste, key=lambda d: d.get("start"))
     return liste
 
-
-# ['scolaryear', 'codemodule', 'codeinstance', 'codeacti', 'codeevent', 'semester', 'instance_location', 'titlemodule', 'prof_inst', 'acti_title', 'num_event', 'start', 'end', 'total_students_registered', 'title', 'type_title', 'type_code', 'is_rdv', 'nb_hours', 'allowed_planning_start', 'allowed_planning_end', 'nb_group', 'nb_max_students_projet', 'room', 'dates', 'module_available', 'module_registered', 'past', 'allow_register', 'event_registered', 'display', 'project', 'rdv_group_registered', 'rdv_indiv_registered', 'allow_token', 'register_student', 'register_prof', 'register_month', 'in_more_than_one_month']
-
-def reminder(api_key, webhook_url, command, _format):
-    pass
-
-def daily_check(api_key, webhook_url, command, _format):
-    evts = get_events_list_in_x_days(api_key, 0, True, False)
-    activity = []
-    for e in evts:
-        activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')}")
-    message = _format.replace("{DATE}", date.today().strftime("%d/%m/%Y")).replace("{ACTIVITIES}", '\n\n'+('\n\n'.join(activity)))
+def send_message(webhook_url, command, message):
     if webhook_url:
         s = Session()
         data = {
@@ -83,11 +73,45 @@ def daily_check(api_key, webhook_url, command, _format):
     if command:
         os.system(command.replace("{MESSAGE}", message))
 
+def today_plus_x(distance):
+    return date.today() + timedelta(days=distance)
 
-def get_events_list_in_x_days(cookie, nb_days, keep_registered=True, keep_unregistered=True):
+def check_unsub(api_key, command, webhook_url, _format, distance):
+    evts = get_events_list_in_x_days(api_key, distance, False, True)
+    unsub = []
+    for e in evts:
+        unsub.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')}")
+    message = _format.replace("{DATE}", (date.today() + timedelta(days=distance)).strftime("%d/%m/%Y")).replace("{ACTIVITIES}", '\n\n'+('\n\n'.join(unsub)))
+    send_message(webhook_url, command, message)
+
+def reminder(api_key, webhook_url, command, _format: str, timer_list):
+    evts = get_events_list_in_x_days(api_key, 0, True, False, True)
+    for e in evts:
+        for t in timer_list:
+            timer = (datetime.strptime(e.get('start'), "%Y-%m-%d %H:%M:%S") - datetime.now()).total_seconds() - (t * 60)
+            if timer < 0:
+                continue
+            message = _format.replace("{HOUR}", e.get('start')).replace("{TIME}", e.get('nb_hours')).replace("{ROOM}", e.get('room').get('code')).replace("{NAME}", e.get('acti_title')).replace("{DIST}", f"{t} min")
+            Timer(timer, send_message, args=(webhook_url, command, message)).start()
+
+
+def daily_check(api_key, webhook_url, command, _format):
+    evts = get_events_list_in_x_days(api_key, 0, True, False)
+    activity = []
+    for e in evts:
+        activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')}")
+    message = _format.replace("{DATE}", date.today().strftime("%d/%m/%Y")).replace("{ACTIVITIES}", '\n\n'+('\n\n'.join(activity)))
+    send_message(webhook_url, command, message)
+
+
+def get_events_list_in_x_days(cookie, nb_days, keep_registered=True, keep_unregistered=True, remove_before=False):
     liste = get_events_list(cookie, date.today() + timedelta(days=nb_days), keep_registered, keep_unregistered)
     total = []
     for e in liste:
+        if remove_before:
+            evt_time = datetime.strptime(e.get("start"))
+            if evt_time > datetime.now():
+                continue
         if e.get("event_registered") == "registered" and keep_registered:
             total.append(e)
         if e.get("event_registered") != "registered" and keep_unregistered:
@@ -149,7 +173,11 @@ try:
 except:
     data = ""
 
-if data != datetime.now().strftime("%Y-%m-%d"):
+reminder(api_key, webhook_url, notify_command, reminder_message, reminder_timer)
+if (unsub_distance):
+    check_unsub(api_key)
+
+if data != datetime.now().strftime("%Y-%m-%d") and daily_check_message != "":
     daily_check(api_key, webhook_url, notify_command, daily_check_message)
 
 with open("./.last_check", 'w+') as f:

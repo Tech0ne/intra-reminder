@@ -2,12 +2,12 @@
 api_key = ""
 
 # The command to execute to show info (leave blank for no message on the desktop)
-notify_command = "zenity --info --title=\"Intra reminder\" --width=500 --height=300 --text \"{MESSAGE}\""
+notify_command = "zenity --info --title=\"Intra reminder\" --text \"{MESSAGE}\""
 
 # Url for the discord Webhook (leave blank for no discord)
 webhook_url = ""
 
-# Timer for reminder (coma separated, in minutes)
+# Timer for reminder (coma separated, in minutes) (just [] for no reminders)
 reminder_timer = [10, 30, 60]
 
 # Message for the daily check (null for no daily check). The following will be changed :
@@ -28,5 +28,5 @@ unsub_distance = 3
 
 # Unsubscribed messgae. The following will be changed
 # {ACTIVITIES}: Unsubscribed activities, separated by \n
-# {Date} : Date checked
+# {DATE} : Date checked
 unsub_message = "/!\\ Warning /!\\ : You have unsubscribed activities ({DATE}) : {ACTIVITIES}"
