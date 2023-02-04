@@ -64,6 +64,25 @@ def get_events_list(cookie, _date: date, keep_registered = True, keep_unregister
 
 # ['scolaryear', 'codemodule', 'codeinstance', 'codeacti', 'codeevent', 'semester', 'instance_location', 'titlemodule', 'prof_inst', 'acti_title', 'num_event', 'start', 'end', 'total_students_registered', 'title', 'type_title', 'type_code', 'is_rdv', 'nb_hours', 'allowed_planning_start', 'allowed_planning_end', 'nb_group', 'nb_max_students_projet', 'room', 'dates', 'module_available', 'module_registered', 'past', 'allow_register', 'event_registered', 'display', 'project', 'rdv_group_registered', 'rdv_indiv_registered', 'allow_token', 'register_student', 'register_prof', 'register_month', 'in_more_than_one_month']
 
+def reminder(api_key, webhook_url, command, _format):
+    pass
+
+def daily_check(api_key, webhook_url, command, _format):
+    evts = get_events_list_in_x_days(api_key, 0, True, False)
+    activity = []
+    for e in evts:
+        activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')}")
+    message = _format.replace("{DATE}", date.today().strftime("%d/%m/%Y")).replace("{ACTIVITIES}", '\n\n'+('\n\n'.join(activity)))
+    if webhook_url:
+        s = Session()
+        data = {
+            "content": "||@everyone||\n"+message,
+            "username": "Intra-reminder"
+        }
+        s.post(webhook_url, json=data)
+    if command:
+        os.system(command.replace("{MESSAGE}", message))
+
 
 def get_events_list_in_x_days(cookie, nb_days, keep_registered=True, keep_unregistered=True):
     liste = get_events_list(cookie, date.today() + timedelta(days=nb_days), keep_registered, keep_unregistered)
@@ -73,7 +92,7 @@ def get_events_list_in_x_days(cookie, nb_days, keep_registered=True, keep_unregi
             total.append(e)
         if e.get("event_registered") != "registered" and keep_unregistered:
             total.append(e)
-    return e
+    return total
 
 def do_zip_update():
     r = Session().get("https://raw.githubusercontent.com/Tech0ne/intra-reminder/main/core/intra-reminder").text
@@ -96,6 +115,42 @@ def do_zip_update():
 do_zip_update()
 
 if not os.path.isfile("./config"):
-    report_crash("COULD NOT GET ./config FILE (IMPORTANT)")
+    report_crash("NO ./config FILE FOUND (IMPORTANT)")
     sys.exit(1)
 
+with open("./config", 'r') as f:
+    data = f.read()
+
+lines = []
+for e in data.split('\n'):
+    if e and not e.startswith('#'):
+        lines.append(e)
+
+api_key = notify_command = webhook_url = reminder_timer = daily_check_message = reminder_message = unsub_distance = unsub_message = None
+
+for e in lines:
+    try:
+        exec(e)
+    except Exception as err:
+        report_crash(f"Error reading config file (line : {e}): {err}")
+        sys.exit(1)
+
+try:
+    if api_key == None or notify_command == None or webhook_url == None or reminder_timer == None or daily_check_message == None or reminder_message == None or unsub_distance == None or unsub_message == None:
+        report_crash("Invalid config file (required values not found)")
+        sys.exit(1)
+except Exception as e:
+    report_crash(f"Error checking config file : {e}")
+    sys.exit(1)
+
+try:
+    with open("./.last_check", 'r+') as f:
+        data = f.read()
+except:
+    data = ""
+
+if data != datetime.now().strftime("%Y-%m-%d"):
+    daily_check(api_key, webhook_url, notify_command, daily_check_message)
+
+with open("./.last_check", 'w+') as f:
+    f.write(datetime.now().strftime("%Y-%m-%d"))
