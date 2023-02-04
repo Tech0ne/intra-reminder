@@ -1,3 +1,38 @@
+# Your intranet API key
 api_key = ""
-notify_command = "zenity --info --text \"{MESSAGE}\" --title=\"Intra reminder\" --width=200 --height=100"
+
+# The command to execute to show info (leave blank for no message on the desktop)
+notify_command = "zenity --info --title=\"Intra reminder\" --width=500 --height=300 --text \"{MESSAGE}\""
+
+# Url for the discord Webhook (leave blank for no discord)
 webhook_url = ""
+
+# Timer for reminder (coma separated, in minutes)
+reminder_timer = [10, 30, 60]
+
+# Do daily activity ?
+daily_check = True
+
+# Message for the daily check. The following will be changed :
+# {ACTIVITIES} : Daily activities, separated by \n
+# {DATE} : Today's date
+daily_check_message = "Here is your daily activity for {DATE} : {ACTIVITIES}"
+
+# Message for the reminder. The following will be changed :
+# {HOUR} : Formated time of the activity
+# {TIME} : Duration of the activity
+# {ROOM} : Room of the activity
+# {NAME} : Name of the activity
+# {DIST} : Time before the event (from now)
+reminder_message = "You will have the activity {NAME} (during {TIME}) at {HOUR} ({DIST} from now)."
+
+# Unsubscribed reminder (check for unsubscribed activities)
+unsub_check = True
+
+# Unsubscribed distance : check how many days before ?
+unsub_distance = 3
+
+# Unsubscribed messgae. The following will be changed
+# {ACTIVITIES}: Unsubscribed activities, separated by \n
+# {Date} : Date checked
+unsub_message = "/!\\ Warning /!\\ : You have unsubscribed activities ({DATE}) : {ACTIVITIES}"

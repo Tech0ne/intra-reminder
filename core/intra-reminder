@@ -1,3 +1,99 @@
 #!/usr/bin/python3
 
 from requests import Session
+from getpass import getuser
+from subprocess import Popen as popen
+from datetime import date, timedelta, datetime
+
+import json
+import sys
+import os
+
+
+BASE_URL = "https://intra.epitech.eu/"
+
+
+def report_crash(data: str):
+    now = datetime.now().strftime("[%d/%m/%Y %H:%M:%S] ")
+    with open(f"/home/{getuser()}/.local/share/intranet-reminder/intra-reminder-crash-report", 'a+') as f:
+        f.write(now)
+        f.write(data)
+        f.write("\nEND REPORT\n\n")
+
+def mkdir(path):
+    p = "/"
+    for e in path.split('/'):
+        p += e
+        if (p[-1] != '/'):
+            p += '/'
+        try:
+            os.mkdir(p)
+        except Exception as e:
+            report_crash(f"Could not create path {p} : {e}")
+
+def get_events_list(cookie, _date: date, keep_registered = True, keep_unregistered = False):
+    url = BASE_URL + "planning/load"
+    s = Session()
+
+    s.cookies.set("user", cookie, domain="intra.epitech.eu")
+
+    formated_date = _date.strftime("%Y-%m-%d")
+    try:
+        planning = json.loads(
+            s.get(url,
+                params={
+                "format": "json",
+                "start": formated_date,
+                "end": formated_date
+            }).text)
+    except Exception as e:
+        report_crash(f"Error fetching data : {e}")
+        return []
+
+    liste = []
+    for e in planning:
+        if e.get("event_registered") == "registered" and keep_registered:
+            liste.append(e)
+        if e.get("event_registered") != "registered" and keep_unregistered:
+            liste.append(e)
+    liste = sorted(liste, key=lambda d: d.get("start"))
+    return liste
+
+
+# ['scolaryear', 'codemodule', 'codeinstance', 'codeacti', 'codeevent', 'semester', 'instance_location', 'titlemodule', 'prof_inst', 'acti_title', 'num_event', 'start', 'end', 'total_students_registered', 'title', 'type_title', 'type_code', 'is_rdv', 'nb_hours', 'allowed_planning_start', 'allowed_planning_end', 'nb_group', 'nb_max_students_projet', 'room', 'dates', 'module_available', 'module_registered', 'past', 'allow_register', 'event_registered', 'display', 'project', 'rdv_group_registered', 'rdv_indiv_registered', 'allow_token', 'register_student', 'register_prof', 'register_month', 'in_more_than_one_month']
+
+
+def get_events_list_in_x_days(cookie, nb_days, keep_registered=True, keep_unregistered=True):
+    liste = get_events_list(cookie, date.today() + timedelta(days=nb_days), keep_registered, keep_unregistered)
+    total = []
+    for e in liste:
+        if e.get("event_registered") == "registered" and keep_registered:
+            total.append(e)
+        if e.get("event_registered") != "registered" and keep_unregistered:
+            total.append(e)
+    return e
+
+def do_zip_update():
+    r = Session().get("https://raw.githubusercontent.com/Tech0ne/intra-reminder/main/core/intra-reminder").text
+    try:
+        with open(f"/home/{getuser()}/.local/share/intranet-reminder/intra-reminder", 'r') as f:
+            data = f.read()
+    except Exception as e:
+        report_crash(f"Could not open file /home/{getuser()}/.local/share/intranet-reminder/intra-reminder : {e}")
+        data = ""
+    if data != r:
+        report_crash("UPDATE")
+        mkdir(f"/home/{getuser()}/.local/share/intranet-reminder/")
+        with open(f"/home/{getuser()}/.local/share/intranet-reminder/intra-reminder", 'w+') as f:
+            f.write(r)
+        report_crash("UPDATE COMPLETE")
+        os.system(f"chmod +x /home/{getuser()}/.local/share/intranet-reminder/intra-reminder")
+        popen([f"/home/{getuser()}/.local/share/intranet-reminder/intra-reminder"])
+        sys.exit(1)
+
+do_zip_update()
+
+if not os.path.isfile("./config"):
+    report_crash("COULD NOT GET ./config FILE (IMPORTANT)")
+    sys.exit(1)
+

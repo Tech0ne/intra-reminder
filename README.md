@@ -35,3 +35,5 @@ Go get your token on the cookies section (Storage>Cookies on Firefox)
 Get the value of that cookie. It is your API token.
 
 </details>
+
+- **Webhook URL** : This specify the URL of the webhook used to send daily reports, reminders...
