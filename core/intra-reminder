@@ -13,7 +13,6 @@ import os
 
 BASE_URL = "https://intra.epitech.eu/"
 
-
 def report_crash(data: str):
     now = datetime.now().strftime("[%d/%m/%Y %H:%M:%S] ")
     with open(f"/home/{getuser()}/.local/share/intranet-reminder/intra-reminder-crash-report", 'a+') as f:
@@ -87,7 +86,7 @@ def check_unsub(api_key, command, webhook_url, distance):
     unsub = []
     for e in evts:
         unsub.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)")
-    for e in [unsub[i:i+7] for i in range(0, len(unsub), 7)]:
+    for e in [unsub[i:i+9] for i in range(0, len(unsub), 9)]:
         message = f"Warning ! You have unsubscribed activities for the {(date.today() + timedelta(days=distance)).strftime('%d/%m/%Y')} : \n\n" + '\n\n'.join(e)
         send_message(webhook_url, command, message)
 
@@ -107,7 +106,7 @@ def daily_check(api_key, webhook_url, command):
     activity = []
     for e in evts:
         activity.append(f"{e.get('acti_title')} in {e.get('room').get('code')} at {e.get('start')} ({BASE_URL}module/{e.get('scolaryear')}/{e.get('codemodule')}/{e.get('codeinstance')}/{e.get('codeacti')}/)")
-    for e in [activity[i:i+7] for i in range(0, len(activity), 7)]:
+    for e in [activity[i:i+9] for i in range(0, len(activity), 9)]:
         message = f"Today ({date.today().strftime('%d/%m/%Y')}) you have these activities : \n\n" + '\n\n'.join(e)
         send_message(webhook_url, command, message)
 
