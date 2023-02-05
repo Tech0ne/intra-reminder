@@ -24,7 +24,7 @@ Please note some of the configs you can / need to change on the `config` file :
 
 - **Reminder timer** : This list define the reminders you might want to set to ping you : for example, the default one will ping you 1 hour, 30 minutes, and 10 minutes before the event.
 
-- **Unsub distance** : This define the nb of days to check for unsub : if you set 3 (by default), monday it will check for all events on wednesday.
+- **Unsub distance** : This define the nb of days to check for unsub : if you set 2 (by default), monday it will check for all events on wednesday.
 
 - **API-key** : This is the API key that you can find on the intranet. If you don't have it, it will not work. The following pictures will help you finding it :
 
